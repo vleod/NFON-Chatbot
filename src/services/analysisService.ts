@@ -1,3 +1,4 @@
+
 import { CustomerInquiry } from "../types";
 import { AnalysisResult } from "../types";
 import { nfonProducts } from "../data/nfon-products";
@@ -7,6 +8,7 @@ interface CategoryMapping {
   [key: string]: {
     category: 'voicebot' | 'chatbot' | 'livechat' | 'speech-to-text' | 'general-ai';
     patterns: string[];
+    businessNeeds: string[];
   }
 }
 
@@ -18,6 +20,13 @@ const CATEGORY_MAPPINGS: CategoryMapping = {
       'anrufbeantworter', 'sprachassistent', 'voicebot', 'spracherkennung',
       'anruf', 'telefonie', 'telefonieren', 'stimme', 'automatisch beantworten',
       'anrufvolumen', 'telefonservice', 'ivr', 'interactive voice response'
+    ],
+    businessNeeds: [
+      'anrufvolumen', 'viele anrufe', '24/7', 'call-center', 'kundenservice telefon',
+      'telefonische anfragen', 'telefonische beratung', 'automatisierte anrufannahme',
+      'anrufe außerhalb der geschäftszeiten', 'telefonische bestellungen',
+      'telefonhotline', 'sprachgesteuertes menü', 'kundenanrufe', 'warteschlange',
+      'automatisierte anrufweiterleitung', 'sprachgesteuerte selbstbedienung'
     ]
   },
   chatbot: {
@@ -27,6 +36,13 @@ const CATEGORY_MAPPINGS: CategoryMapping = {
       'chat automation', 'bot für website', 'website bot', 'textbot',
       'chat-assistent', 'automatische textantworten', 'webseiten-bot',
       'messengern', 'messaging', 'nachrichtenbot'
+    ],
+    businessNeeds: [
+      'website support', 'faq beantwortung', 'automatische antworten', 'digitaler assistent',
+      'textnachrichten automatisieren', 'website interaktion', 'online kundenservice',
+      'häufige fragen', 'selbstbedienung online', 'kundenanfragen auf der website',
+      'digitale kundenbetreuung', 'automatisches messaging', 'schnelle reaktionszeiten',
+      'beratung auf der website', 'online-hilfe', 'rund um die uhr verfügbar'
     ]
   },
   livechat: {
@@ -36,6 +52,13 @@ const CATEGORY_MAPPINGS: CategoryMapping = {
       'echtzeit-chat', 'echtzeit chat', 'menschlicher chat', 'chat support',
       'support chat', 'chat-support', 'berater im chat', 'chat-berater',
       'chat-beratung', 'live beratung', 'live-beratung', 'sofortige unterstützung', 'sofortige hilfe'
+    ],
+    businessNeeds: [
+      'persönliche beratung', 'echte mitarbeiter', 'direkte kommunikation', 'sofortige hilfe',
+      'menschliche interaktion', 'personalisierter service', 'beratungsgespräche',
+      'vertriebsgespräche online', 'komplexe anfragen', 'individuelle fälle',
+      'verkaufsgespräche', 'kundenbeziehungen', 'direkter kundenkontakt',
+      'professionelle beratung', 'höherwertiger support', 'online-verkauf'
     ]
   },
   speechToText: {
@@ -45,6 +68,13 @@ const CATEGORY_MAPPINGS: CategoryMapping = {
       'spracherkennung', 'gesprächstranskription', 'gespräche aufzeichnen',
       'aufgezeichnete gespräche', 'aufzeichnung', 'anrufanalyse', 'call recording',
       'mitschnitt', 'mitschrift', 'gesprächsmitschrift', 'protokoll', 'gesprächsprotokoll'
+    ],
+    businessNeeds: [
+      'dokumentation', 'protokollierung', 'qualitätssicherung', 'schulungsmaterial',
+      'barrierefreiheit', 'compliance', 'aufzeichnungspflicht', 'gerichtsverwertbarkeit',
+      'besprechungsprotokolle', 'analyse von kundengesprächen', 'auswertung',
+      'nachverfolgung', 'beweissicherung', 'nacharbeit', 'rechtliche anforderungen',
+      'zugänglichkeit', 'gesprächsanalyse', 'mehrsprachige kommunikation'
     ]
   },
   generalAI: {
@@ -53,8 +83,70 @@ const CATEGORY_MAPPINGS: CategoryMapping = {
       'ki-lösung', 'ki lösung', 'künstliche intelligenz', 'ai solution', 'ai-lösung',
       'ai lösung', 'umfassende lösung', 'komplettlösung', 'gesamtlösung', 'alles-in-einem',
       'alles in einem', 'plattform', 'suite', 'mehrere kanäle', 'omnichannel', 'alle kanäle'
+    ],
+    businessNeeds: [
+      'digitale transformation', 'prozessoptimierung', 'mehrere kommunikationskanäle',
+      'ganzheitliche lösung', 'durchgängige kundenerfahrung', 'omnichannel',
+      'prozessautomatisierung', 'effizienzsteigerung', 'kostenreduktion',
+      'wettbewerbsvorteil', 'innovativ', 'zukunftssicher', 'skalierbar',
+      'unternehmensweite lösung', 'strategische neuausrichtung', 'moderne kommunikation',
+      'end-to-end', 'datenanalyse', 'kundenerfahrung verbessern'
     ]
   }
+};
+
+// Weighted analysis algorithm for better context understanding
+const analyzeContext = (text: string): Record<string, number> => {
+  const lowercaseText = text.toLowerCase();
+  const scores: Record<string, number> = {
+    voicebot: 0,
+    chatbot: 0,
+    livechat: 0,
+    'speech-to-text': 0,
+    'general-ai': 0
+  };
+  
+  // Check for direct pattern matches (higher weight)
+  for (const [key, mapping] of Object.entries(CATEGORY_MAPPINGS)) {
+    const categoryKey = mapping.category;
+    
+    // Check explicit patterns (strongest indicator)
+    for (const pattern of mapping.patterns) {
+      if (lowercaseText.includes(pattern.toLowerCase())) {
+        scores[categoryKey] += 2;
+      }
+    }
+    
+    // Check business needs indicators (context understanding)
+    for (const need of mapping.businessNeeds) {
+      if (lowercaseText.includes(need.toLowerCase())) {
+        scores[categoryKey] += 1.5;
+      }
+    }
+  }
+  
+  // Additional context analysis
+  if (/(\bhoh(es|e)?\s+anrufvolumen\b|\bviel(e)?\s+anrufe\b|\b24\/7\b|\brund\s+um\s+die\s+uhr\b)/i.test(lowercaseText)) {
+    scores.voicebot += 1;
+  }
+  
+  if (/(\bwebsite\b|\bonline\b|\bdigital\b|\bfaq\b|\bhäufig(e)?\s+fragen\b)/i.test(lowercaseText)) {
+    scores.chatbot += 0.8;
+  }
+  
+  if (/(\bpersönlich\b|\bindividuell\b|\bkomplex\b|\bechtzeit\b|\bsofort\b|\bberater\b|\bberaten\b|\bberatung\b)/i.test(lowercaseText)) {
+    scores.livechat += 1;
+  }
+  
+  if (/(\bdokumentation\b|\bprotokoll\b|\baufzeichnung\b|\baufzeichnen\b|\btranskrib\w+\b|\bmitschnitt\b|\bgeschäftlich\b|\brechtlich\b|\banalyse\b)/i.test(lowercaseText)) {
+    scores['speech-to-text'] += 1;
+  }
+  
+  if (/(\bmehrere\s+kanäle\b|\bomnichannel\b|\bverschiedene\s+wege\b|\btransformation\b|\bganzheitlich\b|\bkomplett\b|\ball(es)?\b|\bintegriert\b)/i.test(lowercaseText)) {
+    scores['general-ai'] += 1;
+  }
+  
+  return scores;
 };
 
 const generateCustomerResponse = (result: AnalysisResult): string => {
@@ -77,49 +169,47 @@ export const analyzeInquiry = (inquiry: CustomerInquiry): Promise<AnalysisResult
     setTimeout(() => {
       const text = inquiry.text.toLowerCase();
       
-      // Count matches for each category
-      const matchCounts: Record<string, number> = {
-        voicebot: 0,
-        chatbot: 0,
-        livechat: 0,
-        'speech-to-text': 0,
-        'general-ai': 0
-      };
+      // Use the enhanced context analysis
+      const categoryScores = analyzeContext(text);
       
-      // Check for patterns in each category
-      for (const [key, mapping] of Object.entries(CATEGORY_MAPPINGS)) {
-        const patterns = mapping.patterns;
-        for (const pattern of patterns) {
-          if (text.includes(pattern.toLowerCase())) {
-            const categoryKey = mapping.category;
-            matchCounts[categoryKey] += 1;
-          }
-        }
-      }
-      
-      // Find the category with the most matches
+      // Find the category with the highest score
       let bestCategory: 'voicebot' | 'chatbot' | 'livechat' | 'speech-to-text' | 'general-ai' | 'unclear' = 'unclear';
-      let highestCount = 0;
+      let highestScore = 0;
       
-      for (const [category, count] of Object.entries(matchCounts)) {
-        if (count > highestCount) {
-          highestCount = count;
+      for (const [category, score] of Object.entries(categoryScores)) {
+        if (score > highestScore) {
+          highestScore = score;
           bestCategory = category as any;
         }
       }
       
-      // Calculate confidence (simple version)
-      const totalMatches = Object.values(matchCounts).reduce((a, b) => a + b, 0);
-      const confidence = totalMatches > 0 
-        ? Math.min(0.5 + (highestCount / totalMatches) * 0.5, 0.95) 
-        : 0.3; // Base confidence
+      // Calculate confidence (more nuanced version)
+      let confidence = 0.3; // Base confidence
+      
+      if (highestScore > 0) {
+        // Calculate sum of all scores to determine relative strength
+        const totalScore = Object.values(categoryScores).reduce((a, b) => a + b, 0);
+        
+        if (totalScore > 0) {
+          // Calculate confidence based on relative dominance of the top category
+          const relativeDominance = highestScore / totalScore;
+          // Adjust confidence based on absolute score and relative dominance
+          confidence = Math.min(0.4 + (highestScore / 5) * 0.3 + relativeDominance * 0.3, 0.95);
+        }
+      }
+      
+      // If score is too low, mark as unclear
+      if (highestScore < 1.5) {
+        bestCategory = 'unclear';
+        confidence = Math.min(confidence, 0.4);
+      }
       
       // Generate analysis
       let analysis = '';
       if (bestCategory !== 'unclear' && confidence > 0.6) {
         const product = nfonProducts.find(p => p.category === bestCategory);
         if (product) {
-          analysis = `Die Anfrage deutet auf Bedarf an ${product.name} hin. Mehrere Schlüsselwörter weisen auf ${bestCategory} als beste Lösung hin.`;
+          analysis = `Die Anfrage deutet auf Bedarf an ${product.name} hin. Die Kundenanforderungen passen zu unserer ${bestCategory} Lösung.`;
         }
       } else if (bestCategory !== 'unclear' && confidence > 0.4) {
         analysis = `Die Anfrage könnte auf Bedarf an ${bestCategory}-Lösungen hinweisen, aber weitere Klärung ist empfehlenswert.`;

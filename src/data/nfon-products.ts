@@ -13,7 +13,7 @@ export const nfonProducts: NFONProduct[] = [
   {
     id: 'botario-voicebot',
     name: 'Botario Voicebot',
-    description: 'AI-powered voice assistants that can handle customer calls, answer questions, and route callers to the right department.',
+    description: 'Intelligente Sprachassistenten zur automatisierten Bearbeitung von Anrufen und sprachgesteuerten Interaktionen mit nahtloser Integration in Ihre bestehenden Systeme.',
     category: 'voicebot',
     keyFeatures: [
       'Natural language processing',
@@ -23,90 +23,90 @@ export const nfonProducts: NFONProduct[] = [
       'Integration with CRM systems'
     ],
     useCases: [
-      'Customer service automation',
-      'Appointment scheduling',
-      'FAQ handling',
-      'Order status inquiries'
+      'Automatisierte Kundenservice-Anrufe',
+      'Terminvereinbarung und -verwaltung',
+      'Häufige Fragen beantworten',
+      'Bestellstatus-Abfragen'
     ],
     icon: 'phone'
   },
   {
     id: 'nfon-chatbot',
     name: 'NFON Chatbot',
-    description: 'Intelligent text-based virtual assistants that can engage with customers on websites and messaging platforms.',
+    description: 'Automatisierte Textdialogsysteme für Websites, Portale oder Kundenservices mit intelligenter Fragebeantwortung und nahtloser Integration in bestehende digitale Plattformen.',
     category: 'chatbot',
     keyFeatures: [
-      'Intuitive conversation flows',
-      'Omnichannel deployment',
-      'Custom knowledge base integration',
-      'Handoff to human agents',
-      'Analytics dashboard'
+      'Intuitive Gesprächsabläufe',
+      'Omnichannel-Einsatz',
+      'Individuelle Wissensdatenbank',
+      'Übergabe an menschliche Agenten',
+      'Analyse-Dashboard'
     ],
     useCases: [
-      'Website customer support',
-      'Lead qualification',
-      'Product recommendations',
-      'Technical troubleshooting'
+      'Website Kundensupport',
+      'Lead-Qualifizierung',
+      'Produktempfehlungen',
+      'Technische Fehlerbehebung'
     ],
     icon: 'message-circle'
   },
   {
     id: 'nfon-livechat',
     name: 'NFON LiveChat',
-    description: 'Real-time chat solution with AI-assistance for customer service teams to engage with website visitors efficiently.',
+    description: 'Echtzeit-Chat-Lösung mit KI-Unterstützung für Kundenservice-Teams zur effizienten Kommunikation mit Website-Besuchern und persönlicher Beratung durch echte Mitarbeiter.',
     category: 'livechat',
     keyFeatures: [
-      'AI-suggested responses',
-      'Visitor tracking',
-      'File sharing',
-      'Chat transcript analysis',
-      'Proactive chat initiation'
+      'KI-unterstützte Antwortvorschläge',
+      'Besucherverfolgung',
+      'Datei-Sharing',
+      'Chat-Transkriptanalyse',
+      'Proaktive Chat-Initiierung'
     ],
     useCases: [
-      'Sales support',
-      'Customer onboarding',
-      'Technical assistance',
-      'Service upgrades'
+      'Verkaufsunterstützung',
+      'Kunden-Onboarding',
+      'Technische Unterstützung',
+      'Service-Upgrades'
     ],
     icon: 'messages-square'
   },
   {
     id: 'nfon-speech-to-text',
     name: 'NFON Speech-to-Text',
-    description: 'Advanced transcription technology that converts spoken language into written text for analysis and documentation.',
+    description: 'Fortschrittliche Transkriptionstechnologie, die gesprochene Sprache in Text umwandelt für Dokumentation, Protokollierung und detaillierte Gesprächsanalysen mit höchster Präzision.',
     category: 'speech-to-text',
     keyFeatures: [
-      'High accuracy transcription',
-      'Multiple language support',
-      'Speaker identification',
-      'Custom vocabulary',
-      'Real-time processing'
+      'Hochpräzise Transkription',
+      'Unterstützung mehrerer Sprachen',
+      'Sprechererkennung',
+      'Anpassbares Vokabular',
+      'Echtzeit-Verarbeitung'
     ],
     useCases: [
-      'Call center analytics',
-      'Meeting transcription',
-      'Compliance documentation',
-      'Customer insight generation'
+      'Call-Center-Analysen',
+      'Besprechungstranskription',
+      'Compliance-Dokumentation',
+      'Generierung von Kundeneinblicken'
     ],
     icon: 'mic'
   },
   {
     id: 'nfon-ai-suite',
     name: 'NFON AI Suite',
-    description: 'Comprehensive AI solution that combines multiple technologies to create a unified customer communication experience.',
+    description: 'Umfassende KI-Lösung, die mehrere Technologien kombiniert, um ein einheitliches Kundenkommunikationserlebnis über alle Kanäle hinweg zu schaffen und Prozesse zu optimieren.',
     category: 'general-ai',
     keyFeatures: [
-      'Unified analytics platform',
-      'Cross-channel customer journey mapping',
-      'AI-powered workflow automation',
-      'Sentiment analysis',
-      'Predictive customer service'
+      'Einheitliche Analyseplattform',
+      'Kanalübergreifendes Mapping der Customer Journey',
+      'KI-gestützte Workflow-Automatisierung',
+      'Stimmungsanalyse',
+      'Vorausschauender Kundenservice'
     ],
     useCases: [
-      'Enterprise communication strategy',
-      'Customer experience optimization',
-      'Business intelligence',
-      'Operational efficiency improvements'
+      'Unternehmenskommunikationsstrategie',
+      'Optimierung der Kundenerfahrung',
+      'Business Intelligence',
+      'Verbesserung der operativen Effizienz'
     ],
     icon: 'brain'
   }
