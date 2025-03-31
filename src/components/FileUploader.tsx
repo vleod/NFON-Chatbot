@@ -1,10 +1,14 @@
 
 import { useState } from "react";
-import { Upload, Loader2, X, FileText } from "lucide-react";
+import { Upload, Loader2, X, FileText, FilePdf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { CustomerInquiry } from "@/types";
 import { parseCSV } from "@/services/analysisService";
+import * as pdfjs from "pdfjs-dist";
+
+// Initialize PDF.js worker
+pdfjs.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.js`;
 
 interface FileUploaderProps {
   onUpload: (inquiries: CustomerInquiry[]) => void;
@@ -19,10 +23,10 @@ const FileUploader = ({ onUpload }: FileUploaderProps) => {
     
     if (!file) return;
     
-    if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt')) {
+    if (!file.name.endsWith('.csv') && !file.name.endsWith('.txt') && !file.name.endsWith('.pdf')) {
       toast({
         title: "Ungültiges Dateiformat",
-        description: "Bitte wählen Sie eine CSV- oder Textdatei.",
+        description: "Bitte wählen Sie eine CSV-, Text- oder PDF-Datei.",
         variant: "destructive",
       });
       return;
@@ -32,18 +36,23 @@ const FileUploader = ({ onUpload }: FileUploaderProps) => {
     setIsLoading(true);
     
     try {
-      const content = await file.text();
-      
       let inquiries: CustomerInquiry[] = [];
       
-      if (file.name.endsWith('.csv')) {
+      if (file.name.endsWith('.pdf')) {
+        // Process PDF file
+        inquiries = await extractTextFromPDF(file);
+      } else if (file.name.endsWith('.csv')) {
+        // Process CSV file
+        const content = await file.text();
         inquiries = parseCSV(content);
       } else {
-        // Handle text file (one inquiry per line)
+        // Process text file
+        const content = await file.text();
         const lines = content.split('\n').filter(line => line.trim().length > 0);
         inquiries = lines.map((line, index) => ({
           id: `txt-${index}`,
           text: line.trim(),
+          sourceFile: file.name
         }));
       }
       
@@ -74,6 +83,39 @@ const FileUploader = ({ onUpload }: FileUploaderProps) => {
     }
   };
   
+  const extractTextFromPDF = async (file: File): Promise<CustomerInquiry[]> => {
+    // Convert the file to an ArrayBuffer
+    const arrayBuffer = await file.arrayBuffer();
+    
+    // Load the PDF document
+    const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
+    
+    let allText = "";
+    
+    // Extract text from each page
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const textContent = await page.getTextContent();
+      const textItems = textContent.items.map((item: any) => item.str);
+      allText += textItems.join(' ') + '\n';
+    }
+    
+    // Split the text into paragraphs (potential inquiries)
+    const paragraphs = allText
+      .split(/\n\s*\n/)
+      .map(p => p.replace(/\n/g, ' ').trim())
+      .filter(p => p.length > 10); // Only consider paragraphs with a reasonable length
+    
+    // Convert each paragraph to a CustomerInquiry
+    const inquiries = paragraphs.map((text, index) => ({
+      id: `pdf-${index}`,
+      text: text,
+      sourceFile: file.name
+    }));
+    
+    return inquiries;
+  };
+  
   const clearFile = () => {
     setFileName(null);
   };
@@ -83,7 +125,11 @@ const FileUploader = ({ onUpload }: FileUploaderProps) => {
       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:bg-gray-50 transition-colors">
         {fileName ? (
           <div className="flex items-center justify-center gap-2">
-            <FileText className="text-nfon-blue" size={20} />
+            {fileName.endsWith('.pdf') ? (
+              <FilePdf className="text-nfon-blue" size={20} />
+            ) : (
+              <FileText className="text-nfon-blue" size={20} />
+            )}
             <span className="font-medium text-gray-700">{fileName}</span>
             {isLoading ? (
               <Loader2 className="animate-spin text-nfon-blue" size={20} />
@@ -102,7 +148,7 @@ const FileUploader = ({ onUpload }: FileUploaderProps) => {
           <>
             <Upload className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-700">
-              CSV- oder Textdatei hochladen
+              CSV-, Text- oder PDF-Datei hochladen
             </h3>
             <p className="mt-1 text-xs text-gray-500">
               Datei hier ablegen oder klicken zum Auswählen
@@ -126,7 +172,7 @@ const FileUploader = ({ onUpload }: FileUploaderProps) => {
           type="file"
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           onChange={handleFileChange}
-          accept=".csv,.txt"
+          accept=".csv,.txt,.pdf"
           disabled={isLoading}
         />
       </div>

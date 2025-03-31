@@ -4,6 +4,7 @@ export interface CustomerInquiry {
   text: string;
   customer?: string;
   date?: string;
+  sourceFile?: string; // Name of the source file if extracted from a document
 }
 
 export interface AnalysisResult {
