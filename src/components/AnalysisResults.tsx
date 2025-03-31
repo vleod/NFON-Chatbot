@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from "react";
-import { AlertCircle, CheckCircle, HelpCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, HelpCircle, Loader2, MessageSquare } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
@@ -155,11 +154,10 @@ const AnalysisResults = ({ results, isLoading, onClearResults }: AnalysisResults
                   </div>
                   <Progress 
                     value={result.confidence * 100} 
-                    className="h-2"
-                    indicatorClassName={
-                      result.confidence > 0.7 ? "bg-green-500" : 
-                      result.confidence > 0.5 ? "bg-amber-500" : 
-                      "bg-red-500"
+                    className={
+                      result.confidence > 0.7 ? "h-2 bg-gray-100" : 
+                      result.confidence > 0.5 ? "h-2 bg-gray-100" : 
+                      "h-2 bg-gray-100"
                     }
                   />
                 </div>
@@ -168,6 +166,16 @@ const AnalysisResults = ({ results, isLoading, onClearResults }: AnalysisResults
                   <h4 className="text-sm font-medium mb-1">Analyse:</h4>
                   <p className="text-sm">{result.analysis}</p>
                 </div>
+                
+                {result.customerResponse && (
+                  <div className="bg-nfon-blue bg-opacity-10 p-3 rounded-md">
+                    <h4 className="text-sm font-medium mb-1 flex items-center gap-1">
+                      <MessageSquare className="h-4 w-4 text-nfon-blue" />
+                      Antwort an Kunden:
+                    </h4>
+                    <p className="text-sm">{result.customerResponse}</p>
+                  </div>
+                )}
                 
                 {product && (
                   <>
@@ -179,7 +187,7 @@ const AnalysisResults = ({ results, isLoading, onClearResults }: AnalysisResults
                   </>
                 )}
                 
-                {result.followUpQuestion && (
+                {result.followUpQuestion && !result.customerResponse && (
                   <div className="bg-nfon-lightgray p-3 rounded-md">
                     <h4 className="text-sm font-medium mb-1 flex items-center gap-1">
                       <HelpCircle className="h-4 w-4 text-nfon-blue" />

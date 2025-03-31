@@ -12,4 +12,5 @@ export interface AnalysisResult {
   confidence: number;
   followUpQuestion?: string;
   analysis: string;
+  customerResponse?: string;
 }

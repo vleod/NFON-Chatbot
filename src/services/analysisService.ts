@@ -1,4 +1,3 @@
-
 import { CustomerInquiry } from "../types";
 import { AnalysisResult } from "../types";
 import { nfonProducts } from "../data/nfon-products";
@@ -58,7 +57,20 @@ const CATEGORY_MAPPINGS: CategoryMapping = {
   }
 };
 
-// Simulated AI analysis using pattern matching
+const generateCustomerResponse = (result: AnalysisResult): string => {
+  const product = nfonProducts.find(p => p.category === result.recommendedProductCategory);
+  
+  if (result.recommendedProductCategory === 'unclear') {
+    return `Vielen Dank für Ihre Anfrage. Um Ihnen besser helfen zu können, hätten wir noch eine Frage: ${result.followUpQuestion} Mit diesen Informationen können wir Ihnen eine maßgeschneiderte Lösung anbieten.`;
+  }
+  
+  if (result.confidence < 0.6) {
+    return `Vielen Dank für Ihr Interesse an unseren KI-Lösungen. Basierend auf Ihrer Anfrage könnte ${product?.name} für Sie interessant sein. ${result.followUpQuestion ? `Um sicherzustellen, dass wir Ihre Anforderungen optimal verstehen: ${result.followUpQuestion}` : ''}`;
+  }
+  
+  return `Vielen Dank für Ihre Anfrage. Basierend auf Ihren Anforderungen empfehlen wir Ihnen ${product?.name}. ${product?.description} ${result.followUpQuestion ? `\n\nZur weiteren Optimierung unseres Angebots: ${result.followUpQuestion}` : ''}`;
+};
+
 export const analyzeInquiry = (inquiry: CustomerInquiry): Promise<AnalysisResult> => {
   return new Promise((resolve) => {
     // Simulate processing delay
@@ -143,13 +155,20 @@ export const analyzeInquiry = (inquiry: CustomerInquiry): Promise<AnalysisResult
         }
       }
       
-      resolve({
+      const result: AnalysisResult = {
         inquiry,
         recommendedProductCategory: bestCategory,
         confidence,
         followUpQuestion,
         analysis
-      });
+      };
+      
+      // Add customer response for manually entered inquiries
+      if (inquiry.id.startsWith('manual-')) {
+        result.customerResponse = generateCustomerResponse(result);
+      }
+      
+      resolve(result);
     }, 1500); // Simulate processing time
   });
 };
@@ -176,7 +195,6 @@ export const analyzeBatchInquiries = async (inquiries: CustomerInquiry[]): Promi
   }
 };
 
-// Function to parse CSV content
 export const parseCSV = (content: string): CustomerInquiry[] => {
   try {
     // Split content into lines
