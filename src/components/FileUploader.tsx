@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Upload, Loader2, X, FileText, FilePdf } from "lucide-react";
+import { Upload, Loader2, X, FileText, File } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { CustomerInquiry } from "@/types";
@@ -126,7 +126,7 @@ const FileUploader = ({ onUpload }: FileUploaderProps) => {
         {fileName ? (
           <div className="flex items-center justify-center gap-2">
             {fileName.endsWith('.pdf') ? (
-              <FilePdf className="text-nfon-blue" size={20} />
+              <File className="text-nfon-blue" size={20} />
             ) : (
               <FileText className="text-nfon-blue" size={20} />
             )}
