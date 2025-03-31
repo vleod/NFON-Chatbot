@@ -1,9 +1,6 @@
-
 import { Brain } from "lucide-react";
-
 const Header = () => {
-  return (
-    <header className="bg-nfon-blue text-white py-4 px-6 flex items-center justify-between shadow-md">
+  return <header className="text-white py-4 px-6 flex items-center justify-between shadow-md bg-[#1f009b]">
       <div className="flex items-center gap-3">
         <Brain size={32} />
         <div>
@@ -15,8 +12,6 @@ const Header = () => {
         <p>AI Sales Team</p>
         <p className="text-xs opacity-75">v1.0</p>
       </div>
-    </header>
-  );
+    </header>;
 };
-
 export default Header;
