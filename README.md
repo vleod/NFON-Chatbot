@@ -1,69 +1,71 @@
-# Welcome to your Lovable project
 
-## Project info
+# NFON AI Produktberater
+
+Ein intelligentes Tool zur Analyse von Kundenanfragen und Empfehlung passender NFON AI-Produkte für das Sales-Team.
+
+## Projektübersicht
+
+Der NFON AI Produktberater ist eine Webanwendung, die es dem Sales-Team ermöglicht, Kundenanfragen zu analysieren und automatisch passende NFON-Produkte vorzuschlagen. Das Tool kann zwischen verschiedenen Produktkategorien unterscheiden und generiert bei Bedarf sinnvolle Rückfragen.
 
 **URL**: https://lovable.dev/projects/0899ca83-3c7c-449d-8942-2a484347409c
 
-## How can I edit this code?
+## Funktionen
 
-There are several ways of editing your application.
+- **Eingabe von einzelnen Kundenanfragen** über ein Textfeld
+- **Batch-Upload** von Kundenanfragen als CSV- oder Textdatei
+- **Demo-Daten** mit Beispielanfragen zum Testen
+- **KI-gestützte Analyse** der Anfragen nach Produktkategorien:
+  - Botario Voicebots
+  - NFON Chatbots
+  - NFON LiveChat
+  - NFON Speech-to-Text
+  - NFON AI Suite
+- **Konfidenzwerte** zur Einschätzung der Analysegenauigkeit
+- **Rückfragevorschläge** bei unklaren Anfragen
+- **Statistische Übersicht** bei Analyse mehrerer Anfragen
 
-**Use Lovable**
+## Technische Umsetzung
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/0899ca83-3c7c-449d-8942-2a484347409c) and start prompting.
+Das Tool wurde mit folgenden Technologien entwickelt:
 
-Changes made via Lovable will be committed automatically to this repo.
+- **React** mit TypeScript als Frontend-Framework
+- **Tailwind CSS** für das responsive Design
+- **Lucide Icons** für die visuellen Elemente
+- **Shadcn UI** für die Komponenten-Bibliothek
 
-**Use your preferred IDE**
+### Analyse-Algorithmus
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+Die Analyse funktioniert durch einen Pattern-Matching-Algorithmus, der häufige Schlüsselwörter und Phrasen erkennt, die auf bestimmte Produktkategorien hindeuten. Der Algorithmus:
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+1. Nimmt den Text der Kundenanfrage entgegen
+2. Vergleicht Schlüsselwörter und Phrasen mit einer vordefinierten Liste pro Kategorie
+3. Ermittelt die Kategorie mit den meisten Übereinstimmungen
+4. Berechnet einen Konfidenzwert basierend auf der Anzahl und Verteilung der Übereinstimmungen
+5. Generiert eine Analyse und bei Bedarf eine Rückfrage
 
-Follow these steps:
+### CSV-Parser
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+Der CSV-Parser kann verschiedene Formate verarbeiten und erkennt automatisch, ob eine Kopfzeile vorhanden ist. Er extrahiert die Kundenanfragen sowie optional den Kundennamen und das Datum.
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+## Erweiterungsmöglichkeiten
 
-# Step 3: Install the necessary dependencies.
-npm i
+Für zukünftige Versionen sind folgende Erweiterungen denkbar:
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
+- Integration eines echten LLM (z.B. GPT-4) für präzisere Analysen
+- Anbindung an CRM-Systeme zur direkten Übernahme von Kundenanfragen
+- Export-Funktion für die Analyseergebnisse
+- Detaillierte Produktvergleiche für ähnliche Anforderungen
+- Mehrsprachige Unterstützung für internationale Anfragen
 
-**Edit a file directly in GitHub**
+## Nutzung
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+1. Öffnen Sie die Anwendung im Browser
+2. Geben Sie entweder eine einzelne Kundenanfrage ein oder laden Sie eine CSV-/Textdatei hoch
+3. Das Tool analysiert die Anfrage(n) und zeigt Empfehlungen an
+4. Bei mehreren Anfragen wird zusätzlich eine statistische Auswertung angezeigt
 
-**Use GitHub Codespaces**
+Die Beispieldaten können über den "Beispiel-Anfragen laden" Button geladen werden, um das Tool zu testen.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Entwickler
 
-## What technologies are used for this project?
-
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/0899ca83-3c7c-449d-8942-2a484347409c) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+Entwickelt für das AI Sales Team bei NFON.
