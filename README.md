@@ -42,20 +42,12 @@ Die Analyse funktioniert durch einen Pattern-Matching-Algorithmus, der häufige 
 3. Ermittelt die Kategorie mit den meisten Übereinstimmungen
 4. Berechnet einen Konfidenzwert basierend auf der Anzahl und Verteilung der Übereinstimmungen
 5. Generiert eine Analyse und bei Bedarf eine Rückfrage
+6. Integration eines LLM (z.B. GPT-4) für präzisere Analysen, indem man API Key eingibt
 
 ### CSV-Parser
 
 Der CSV-Parser kann verschiedene Formate verarbeiten und erkennt automatisch, ob eine Kopfzeile vorhanden ist. Er extrahiert die Kundenanfragen sowie optional den Kundennamen und das Datum.
 
-## Erweiterungsmöglichkeiten
-
-Für zukünftige Versionen sind folgende Erweiterungen denkbar:
-
-- Integration eines echten LLM (z.B. GPT-4) für präzisere Analysen
-- Anbindung an CRM-Systeme zur direkten Übernahme von Kundenanfragen
-- Export-Funktion für die Analyseergebnisse
-- Detaillierte Produktvergleiche für ähnliche Anforderungen
-- Mehrsprachige Unterstützung für internationale Anfragen
 
 ## Nutzung
 
