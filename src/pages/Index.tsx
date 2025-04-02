@@ -4,17 +4,20 @@ import Header from "@/components/Header";
 import InquiryInput from "@/components/InquiryInput";
 import FileUploader from "@/components/FileUploader";
 import AnalysisResults from "@/components/AnalysisResults";
+import ApiKeyInput from "@/components/ApiKeyInput";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { CustomerInquiry, AnalysisResult } from "@/types";
 import { analyzeInquiry, analyzeBatchInquiries } from "@/services/analysisService";
 import { sampleInquiries } from "@/data/nfon-products";
 import { Button } from "@/components/ui/button";
-import { Database, UploadCloud, FileText } from "lucide-react";
+import { Database, UploadCloud, FileText, Brain } from "lucide-react";
+import { getOpenAIApiKey } from "@/services/llmService";
 
 const Index = () => {
   const [results, setResults] = useState<AnalysisResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
 
   const handleSingleInquiry = async (inquiry: CustomerInquiry) => {
     setIsLoading(true);
@@ -56,6 +59,12 @@ const Index = () => {
     setResults([]);
   };
 
+  const toggleApiKeyInput = () => {
+    setShowApiKeyInput(!showApiKeyInput);
+  };
+
+  const hasApiKey = !!getOpenAIApiKey();
+
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Header />
@@ -64,13 +73,30 @@ const Index = () => {
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-1 space-y-6">
             <Card>
-              <CardHeader>
-                <CardTitle className="text-lg">Kundenanfragen analysieren</CardTitle>
-                <CardDescription>
-                  Lassen Sie Kundenanfragen analysieren, um passende NFON AI-Produkte zu identifizieren
-                </CardDescription>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <div>
+                  <CardTitle className="text-lg">Kundenanfragen analysieren</CardTitle>
+                  <CardDescription>
+                    Lassen Sie Kundenanfragen analysieren, um passende NFON AI-Produkte zu identifizieren
+                  </CardDescription>
+                </div>
+                <Button
+                  variant={hasApiKey ? "outline" : "default"}
+                  size="sm"
+                  className={hasApiKey ? "bg-green-50" : ""}
+                  onClick={toggleApiKeyInput}
+                >
+                  <Brain className={`h-4 w-4 mr-2 ${hasApiKey ? "text-green-500" : ""}`} />
+                  {hasApiKey ? "LLM aktiv" : "LLM Setup"}
+                </Button>
               </CardHeader>
               <CardContent>
+                {showApiKeyInput && (
+                  <div className="mb-6">
+                    <ApiKeyInput />
+                  </div>
+                )}
+
                 <Tabs defaultValue="input">
                   <TabsList className="grid w-full grid-cols-2 mb-4">
                     <TabsTrigger value="input" className="flex items-center gap-2">
@@ -124,6 +150,17 @@ const Index = () => {
                 <p>
                   Bei unklaren Anfragen werden Rückfragen generiert, um weitere Details zu erhalten.
                 </p>
+                {hasApiKey && (
+                  <div className="bg-green-50 border border-green-100 rounded p-3 flex items-start gap-2">
+                    <Brain className="h-4 w-4 text-green-500 mt-0.5 flex-shrink-0" />
+                    <div>
+                      <p className="font-medium text-green-800">LLM-Integration aktiv</p>
+                      <p className="text-green-700">
+                        Die Analysen werden mit einem großen Sprachmodell durchgeführt für präzisere Ergebnisse.
+                      </p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>

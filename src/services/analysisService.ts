@@ -1,8 +1,8 @@
-
 import { CustomerInquiry } from "../types";
 import { AnalysisResult } from "../types";
 import { nfonProducts } from "../data/nfon-products";
 import { toast } from "@/components/ui/use-toast";
+import { analyzeLLM, generateLLMResponse, getOpenAIApiKey } from "./llmService";
 
 interface CategoryMapping {
   [key: string]: {
@@ -95,7 +95,6 @@ const CATEGORY_MAPPINGS: CategoryMapping = {
   }
 };
 
-// Weighted analysis algorithm for better context understanding
 const analyzeContext = (text: string): Record<string, number> => {
   const lowercaseText = text.toLowerCase();
   const scores: Record<string, number> = {
@@ -106,18 +105,15 @@ const analyzeContext = (text: string): Record<string, number> => {
     'general-ai': 0
   };
   
-  // Check for direct pattern matches (higher weight)
   for (const [key, mapping] of Object.entries(CATEGORY_MAPPINGS)) {
     const categoryKey = mapping.category;
     
-    // Check explicit patterns (strongest indicator)
     for (const pattern of mapping.patterns) {
       if (lowercaseText.includes(pattern.toLowerCase())) {
         scores[categoryKey] += 2;
       }
     }
     
-    // Check business needs indicators (context understanding)
     for (const need of mapping.businessNeeds) {
       if (lowercaseText.includes(need.toLowerCase())) {
         scores[categoryKey] += 1.5;
@@ -125,7 +121,6 @@ const analyzeContext = (text: string): Record<string, number> => {
     }
   }
   
-  // Additional context analysis
   if (/(\bhoh(es|e)?\s+anrufvolumen\b|\bviel(e)?\s+anrufe\b|\b24\/7\b|\brund\s+um\s+die\s+uhr\b)/i.test(lowercaseText)) {
     scores.voicebot += 1;
   }
@@ -164,102 +159,124 @@ const generateCustomerResponse = (result: AnalysisResult): string => {
 };
 
 export const analyzeInquiry = (inquiry: CustomerInquiry): Promise<AnalysisResult> => {
-  return new Promise((resolve) => {
-    // Simulate processing delay
-    setTimeout(() => {
-      const text = inquiry.text.toLowerCase();
-      
-      // Use the enhanced context analysis
-      const categoryScores = analyzeContext(text);
-      
-      // Find the category with the highest score
-      let bestCategory: 'voicebot' | 'chatbot' | 'livechat' | 'speech-to-text' | 'general-ai' | 'unclear' = 'unclear';
-      let highestScore = 0;
-      
-      for (const [category, score] of Object.entries(categoryScores)) {
-        if (score > highestScore) {
-          highestScore = score;
-          bestCategory = category as any;
+  return new Promise(async (resolve) => {
+    setTimeout(async () => {
+      try {
+        if (getOpenAIApiKey()) {
+          try {
+            const llmResult = await analyzeLLM(inquiry);
+            
+            const result: AnalysisResult = {
+              inquiry,
+              recommendedProductCategory: llmResult.recommendedProductCategory,
+              confidence: llmResult.confidence,
+              followUpQuestion: llmResult.followUpQuestion,
+              analysis: llmResult.analysis
+            };
+            
+            if (inquiry.id.startsWith('manual-')) {
+              result.customerResponse = await generateLLMResponse(result);
+            }
+            
+            resolve(result);
+            return;
+          } catch (llmError) {
+            console.error("LLM analysis failed, falling back to rule-based analysis:", llmError);
+          }
         }
-      }
-      
-      // Calculate confidence (more nuanced version)
-      let confidence = 0.3; // Base confidence
-      
-      if (highestScore > 0) {
-        // Calculate sum of all scores to determine relative strength
-        const totalScore = Object.values(categoryScores).reduce((a, b) => a + b, 0);
         
-        if (totalScore > 0) {
-          // Calculate confidence based on relative dominance of the top category
-          const relativeDominance = highestScore / totalScore;
-          // Adjust confidence based on absolute score and relative dominance
-          confidence = Math.min(0.4 + (highestScore / 5) * 0.3 + relativeDominance * 0.3, 0.95);
+        const text = inquiry.text.toLowerCase();
+        
+        const categoryScores = analyzeContext(text);
+        
+        let bestCategory: 'voicebot' | 'chatbot' | 'livechat' | 'speech-to-text' | 'general-ai' | 'unclear' = 'unclear';
+        let highestScore = 0;
+        
+        for (const [category, score] of Object.entries(categoryScores)) {
+          if (score > highestScore) {
+            highestScore = score;
+            bestCategory = category as any;
+          }
         }
-      }
-      
-      // If score is too low, mark as unclear
-      if (highestScore < 1.5) {
-        bestCategory = 'unclear';
-        confidence = Math.min(confidence, 0.4);
-      }
-      
-      // Generate analysis
-      let analysis = '';
-      if (bestCategory !== 'unclear' && confidence > 0.6) {
-        const product = nfonProducts.find(p => p.category === bestCategory);
-        if (product) {
-          analysis = `Die Anfrage deutet auf Bedarf an ${product.name} hin. Die Kundenanforderungen passen zu unserer ${bestCategory} Lösung.`;
+        
+        let confidence = 0.3;
+        
+        if (highestScore > 0) {
+          const totalScore = Object.values(categoryScores).reduce((a, b) => a + b, 0);
+          
+          if (totalScore > 0) {
+            const relativeDominance = highestScore / totalScore;
+            confidence = Math.min(0.4 + (highestScore / 5) * 0.3 + relativeDominance * 0.3, 0.95);
+          }
         }
-      } else if (bestCategory !== 'unclear' && confidence > 0.4) {
-        analysis = `Die Anfrage könnte auf Bedarf an ${bestCategory}-Lösungen hinweisen, aber weitere Klärung ist empfehlenswert.`;
-      } else {
-        analysis = `Die Anfrage ist nicht eindeutig einem bestimmten Produktbereich zuzuordnen. Eine allgemeine Beratung wird empfohlen.`;
-        bestCategory = 'unclear';
-      }
-      
-      // Generate follow-up question for low confidence or unclear cases
-      let followUpQuestion;
-      if (bestCategory === 'unclear' || confidence < 0.7) {
-        followUpQuestion = "Könnten Sie näher erläutern, welche spezifischen Kommunikationsherausforderungen Sie aktuell in Ihrem Unternehmen bewältigen möchten?";
-      } else if (confidence < 0.9) {
-        // Generate specific follow-up based on category
-        switch(bestCategory) {
-          case 'voicebot':
-            followUpQuestion = "Wie viele Anrufe erhalten Sie täglich und welche Art von Anfragen kommen am häufigsten vor?";
-            break;
-          case 'chatbot':
-            followUpQuestion = "Welche spezifischen Funktionen erwarten Sie von einem Chatbot und in welche Systeme soll er integriert werden?";
-            break;
-          case 'livechat':
-            followUpQuestion = "Wie groß ist Ihr Support-Team und wie möchten Sie den Live-Chat in Ihre bestehenden Prozesse integrieren?";
-            break;
-          case 'speech-to-text':
-            followUpQuestion = "Welche Art von Analysen möchten Sie mit den transkribierten Gesprächen durchführen?";
-            break;
-          case 'general-ai':
-            followUpQuestion = "Welche Kommunikationskanäle sind für Ihr Unternehmen am wichtigsten?";
-            break;
-          default:
-            followUpQuestion = "Können Sie näher erläutern, welche spezifischen Herausforderungen Sie mit einer KI-Lösung angehen möchten?";
+        
+        if (highestScore < 1.5) {
+          bestCategory = 'unclear';
+          confidence = Math.min(confidence, 0.4);
         }
+        
+        let analysis = '';
+        if (bestCategory !== 'unclear' && confidence > 0.6) {
+          const product = nfonProducts.find(p => p.category === bestCategory);
+          if (product) {
+            analysis = `Die Anfrage deutet auf Bedarf an ${product.name} hin. Die Kundenanforderungen passen zu unserer ${bestCategory} Lösung.`;
+          }
+        } else if (bestCategory !== 'unclear' && confidence > 0.4) {
+          analysis = `Die Anfrage könnte auf Bedarf an ${bestCategory}-Lösungen hinweisen, aber weitere Klärung ist empfehlenswert.`;
+        } else {
+          analysis = `Die Anfrage ist nicht eindeutig einem bestimmten Produktbereich zuzuordnen. Eine allgemeine Beratung wird empfohlen.`;
+          bestCategory = 'unclear';
+        }
+        
+        let followUpQuestion;
+        if (bestCategory === 'unclear' || confidence < 0.7) {
+          followUpQuestion = "Könnten Sie näher erläutern, welche spezifischen Kommunikationsherausforderungen Sie aktuell in Ihrem Unternehmen bewältigen möchten?";
+        } else if (confidence < 0.9) {
+          switch(bestCategory) {
+            case 'voicebot':
+              followUpQuestion = "Wie viele Anrufe erhalten Sie täglich und welche Art von Anfragen kommen am häufigsten vor?";
+              break;
+            case 'chatbot':
+              followUpQuestion = "Welche spezifischen Funktionen erwarten Sie von einem Chatbot und in welche Systeme soll er integriert werden?";
+              break;
+            case 'livechat':
+              followUpQuestion = "Wie groß ist Ihr Support-Team und wie möchten Sie den Live-Chat in Ihre bestehenden Prozesse integrieren?";
+              break;
+            case 'speech-to-text':
+              followUpQuestion = "Welche Art von Analysen möchten Sie mit den transkribierten Gesprächen durchführen?";
+              break;
+            case 'general-ai':
+              followUpQuestion = "Welche Kommunikationskanäle sind für Ihr Unternehmen am wichtigsten?";
+              break;
+            default:
+              followUpQuestion = "Können Sie näher erläutern, welche spezifischen Herausforderungen Sie mit einer KI-Lösung angehen möchten?";
+          }
+        }
+        
+        const result: AnalysisResult = {
+          inquiry,
+          recommendedProductCategory: bestCategory,
+          confidence,
+          followUpQuestion,
+          analysis
+        };
+        
+        if (inquiry.id.startsWith('manual-')) {
+          result.customerResponse = generateCustomerResponse(result);
+        }
+        
+        resolve(result);
+      } catch (error) {
+        console.error("Error during analysis:", error);
+        resolve({
+          inquiry,
+          recommendedProductCategory: "unclear",
+          confidence: 0.3,
+          followUpQuestion: "Könnten Sie Ihre Anfrage bitte näher erläutern? Es ist ein Fehler bei der Analyse aufgetreten.",
+          analysis: "Bei der Analyse ist ein Fehler aufgetreten."
+        });
       }
-      
-      const result: AnalysisResult = {
-        inquiry,
-        recommendedProductCategory: bestCategory,
-        confidence,
-        followUpQuestion,
-        analysis
-      };
-      
-      // Add customer response for manually entered inquiries
-      if (inquiry.id.startsWith('manual-')) {
-        result.customerResponse = generateCustomerResponse(result);
-      }
-      
-      resolve(result);
-    }, 1500); // Simulate processing time
+    }, 1500);
   });
 };
 
@@ -267,7 +284,6 @@ export const analyzeBatchInquiries = async (inquiries: CustomerInquiry[]): Promi
   try {
     const results: AnalysisResult[] = [];
     
-    // Process inquiries in sequence to simulate a real analysis
     for (const inquiry of inquiries) {
       const result = await analyzeInquiry(inquiry);
       results.push(result);
@@ -287,19 +303,16 @@ export const analyzeBatchInquiries = async (inquiries: CustomerInquiry[]): Promi
 
 export const parseCSV = (content: string): CustomerInquiry[] => {
   try {
-    // Split content into lines
     const lines = content.trim().split('\n');
     
     if (lines.length === 0) {
       return [];
     }
     
-    // Check if we have a header row
     const hasHeader = lines[0].toLowerCase().includes('text') || 
                      lines[0].toLowerCase().includes('anfrage') ||
                      lines[0].toLowerCase().includes('kunde');
     
-    // Start from 2nd line if we have a header
     const startIndex = hasHeader ? 1 : 0;
     
     const inquiries: CustomerInquiry[] = [];
@@ -309,12 +322,10 @@ export const parseCSV = (content: string): CustomerInquiry[] => {
       
       if (!line) continue;
       
-      // Handle different CSV formats
       const parts = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
       
       if (parts.length >= 1) {
         let text = parts[0].trim();
-        // Remove quotes if they exist
         if (text.startsWith('"') && text.endsWith('"')) {
           text = text.substring(1, text.length - 1);
         }
